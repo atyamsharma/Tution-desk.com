@@ -3,102 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TuitionDesk - Student & Admin Portal</title>
-    <!-- Tailwind CSS CDN -->
+    <title>TuitionDesk - App</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-100 min-h-screen flex flex-col items-center justify-center p-4">
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4">
 
-    <div class="bg-white w-full max-w-md rounded-2xl shadow-xl p-6 space-y-6">
-        <!-- App Header -->
-        <div class="text-center space-y-2">
-            <div class="inline-block bg-indigo-600 p-3 rounded-full text-white shadow-md">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-                </svg>
+    <div id="app-container" class="bg-white w-full max-w-md rounded-2xl shadow-xl p-6 space-y-6">
+        <!-- Auth View -->
+        <div id="auth-view" class="space-y-6">
+            <div class="text-center space-y-2">
+                <h1 class="text-2xl font-bold text-slate-800">TuitionDesk</h1>
+                <p class="text-sm text-slate-500">Select your role to sign in</p>
             </div>
-            <h1 id="app-title" class="text-2xl font-bold text-slate-800">TuitionDesk</h1>
-            <p class="text-sm text-slate-500">Select your role to sign in</p>
+
+            <div class="flex bg-slate-100 p-1 rounded-xl">
+                <button id="tab-student" onclick="switchAuth('student')" class="flex-1 py-2 text-sm font-medium rounded-lg bg-white text-slate-800 shadow-sm transition">Student / Parent</button>
+                <button id="tab-admin" onclick="switchAuth('admin')" class="flex-1 py-2 text-sm font-medium rounded-lg text-slate-500 transition">Admin / Staff</button>
+            </div>
+
+            <div id="role-student" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Select Student Name</label>
+                    <select class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-slate-800">
+                        <option>Aarav Sharma</option>
+                        <option>Priya Verma</option>
+                    </select>
+                </div>
+                <button onclick="enterDashboard('student')" class="w-full bg-indigo-600 text-white font-semibold py-3 rounded-xl shadow-lg">Enter Student Dashboard</button>
+            </div>
+
+            <div id="role-admin" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Enter Admin PIN</label>
+                    <input type="password" id="admin-pin" placeholder="Default PIN: 12345" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-slate-800 text-center tracking-widest font-mono">
+                </div>
+                <div id="login-error" class="text-red-500 text-xs text-center hidden font-medium">Wrong PIN! Please enter 12345.</div>
+                <button onclick="verifyAdmin()" class="w-full bg-slate-900 text-white font-semibold py-3 rounded-xl shadow-lg">Unlock Admin Console</button>
+            </div>
         </div>
 
-        <!-- Role Selector Tabs -->
-        <div class="flex bg-slate-100 p-1 rounded-xl">
-            <button id="tab-student" onclick="switchTab('student')" class="flex-1 py-2 text-sm font-medium rounded-lg bg-white text-slate-800 shadow-sm transition">Student / Parent</button>
-            <button id="tab-admin" onclick="switchTab('admin')" class="flex-1 py-2 text-sm font-medium rounded-lg text-slate-500 transition">Admin / Staff</button>
-        </div>
-
-        <!-- Student Login View -->
-        <div id="view-student" class="space-y-4">
-            <div>
-                <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Select Student Name</label>
-                <select id="student-select" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <option value="">-- Choose Student --</option>
-                </select>
+        <!-- Dashboard View (Initially Hidden) -->
+        <div id="dashboard-view" class="hidden space-y-6">
+            <div class="flex items-center justify-between border-b pb-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800">Admin Dashboard</h2>
+                    <p class="text-xs text-slate-500">Logged in as Staff</p>
+                </div>
+                <button onclick="logout()" class="text-xs bg-red-100 text-red-600 px-3 py-1.5 rounded-lg font-medium">Logout</button>
             </div>
-            <button onclick="openStudentDashboard()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl shadow-lg transition">
-                Enter Student Dashboard
-            </button>
-        </div>
 
-        <!-- Admin Login View -->
-        <div id="view-admin" class="space-y-4 hidden">
-            <div>
-                <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Enter Admin PIN</label>
-                <input type="password" id="admin-pin" placeholder="Default PIN: 12345" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-center tracking-widest font-mono">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                    <p class="text-xs text-indigo-600 font-semibold uppercase">Total Students</p>
+                    <p class="text-2xl font-bold text-indigo-900 mt-1">24</p>
+                </div>
+                <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
+                    <p class="text-xs text-emerald-600 font-semibold uppercase">Fee Collected</p>
+                    <p class="text-2xl font-bold text-emerald-900 mt-1">₹1.2L</p>
+                </div>
             </div>
-            <div id="login-error" class="text-red-500 text-xs text-center hidden font-medium">गलत पिन! कृपया सही पिन (12345) दर्ज करें।</div>
-            <button onclick="verifyAdminPin()" class="w-full bg-slate-900 hover:bg-black text-white font-semibold py-3 rounded-xl shadow-lg transition">
-                Unlock Admin Console
-            </button>
+
+            <div class="space-y-3">
+                <h3 class="text-sm font-semibold text-slate-700">Quick Actions</h3>
+                <button class="w-full text-left bg-slate-50 hover:bg-slate-100 p-3 rounded-xl border text-sm font-medium text-slate-700 flex justify-between items-center">
+                    <span>Manage Student Record</span>
+                    <span>→</span>
+                </button>
+                <button class="w-full text-left bg-slate-50 hover:bg-slate-100 p-3 rounded-xl border text-sm font-medium text-slate-700 flex justify-between items-center">
+                    <span>Mark Daily Attendance</span>
+                    <span>→</span>
+                </button>
+            </div>
         </div>
     </div>
 
     <script>
-        function switchTab(role) {
-            const studentTab = document.getElementById('tab-student');
-            const adminTab = document.getElementById('tab-admin');
-            const studentView = document.getElementById('view-student');
-            const adminView = document.getElementById('view-admin');
-            const errorDiv = document.getElementById('login-error');
+        function switchAuth(role) {
+            const isStudent = role === 'student';
+            document.getElementById('tab-student').className = `flex-1 py-2 text-sm font-medium rounded-lg transition ${isStudent ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500'}`;
+            document.getElementById('tab-admin').className = `flex-1 py-2 text-sm font-medium rounded-lg transition ${!isStudent ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500'}`;
+            document.getElementById('role-student').classList.toggle('hidden', !isStudent);
+            document.getElementById('role-admin').classList.toggle('hidden', isStudent);
+            document.getElementById('login-error').classList.add('hidden');
+        }
 
-            errorDiv.classList.add('hidden');
-
-            if (role === 'student') {
-                studentTab.className = "flex-1 py-2 text-sm font-medium rounded-lg bg-white text-slate-800 shadow-sm transition";
-                adminTab.className = "flex-1 py-2 text-sm font-medium rounded-lg text-slate-500 transition";
-                studentView.classList.remove('hidden');
-                adminView.classList.add('hidden');
+        function verifyAdmin() {
+            const pin = document.getElementById('admin-pin').value.trim();
+            if (pin === "12345") {
+                document.getElementById('auth-view').classList.add('hidden');
+                document.getElementById('dashboard-view').classList.remove('hidden');
             } else {
-                adminTab.className = "flex-1 py-2 text-sm font-medium rounded-lg bg-white text-slate-800 shadow-sm transition";
-                studentTab.className = "flex-1 py-2 text-sm font-medium rounded-lg text-slate-500 transition";
-                adminView.classList.remove('hidden');
-                studentView.classList.add('hidden');
+                document.getElementById('login-error').classList.remove('hidden');
             }
         }
 
-        function verifyAdminPin() {
-            const pinInput = document.getElementById('admin-pin').value.trim();
-            const errorDiv = document.getElementById('login-error');
-
-            if (pinInput === "12345") {
-                errorDiv.classList.add('hidden');
-                alert("एडमिन कंसोल सफलतापूर्वक अनलॉक हो गया है!");
-                // यहाँ आप आगे एडमिन डैशबोर्ड ओपन करने का कोड जोड़ सकते हैं
-            } else {
-                errorDiv.classList.remove('hidden');
-            }
+        function enterDashboard(role) {
+            alert(role.toUpperCase() + " dashboard coming soon!");
         }
 
-        function openStudentDashboard() {
-            const select = document.getElementById('student-select');
-            if (!select.value) {
-                alert("कृपया पहले छात्र का नाम चुनें।");
-                return;
-            }
-            alert("छात्र डैशबोर्ड जल्द खुलेगा।");
+        function logout() {
+            document.getElementById('dashboard-view').classList.add('hidden');
+            document.getElementById('auth-view').classList.remove('hidden');
+            document.getElementById('admin-pin').value = '';
         }
     </script>
 </body>
 </html>
-
