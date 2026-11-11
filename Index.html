@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TuitionDesk - Tuition Management App</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vue.js 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TuitionDesk">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2997/2997322.png">
+</head>
+<body class="bg-slate-100 font-sans text-slate-800 pb-20 select-none">
+
+<div id="app" class="max-w-md mx-auto bg-white min-h-screen shadow-xl relative flex flex-col">
+
+    <!-- LOGIN SCREEN -->
+    <div v-if="!currentUser" class="flex-1 flex flex-col justify-center p-6 space-y-6">
+        <div class="text-center space-y-2">
+            <div class="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center text-white text-3xl font-bold mx-auto shadow-lg">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-slate-800">{{ settings.appTitle }}</h1>
+            <p class="text-xs text-slate-500">Select your role to sign in</p>
+        </div>
+
+        <!-- Role Selector Toggle -->
+        <div class="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-xl">
+            <button @click="loginRole = 'student'" :class="loginRole === 'student' ? 'bg-white text-indigo-600 shadow' : 'text-slate-500'" class="py-2 text-sm font-bold rounded-lg transition">
+                Student / Parent
+            </button>
+            <button @click="loginRole = 'admin'" :class="loginRole === 'admin' ? 'bg-white text-indigo-600 shadow' : 'text-slate-500'" class="py-2 text-sm font-bold rounded-lg transition">
+                Admin / Staff
+            </button>
+        </div>
+
+        <!-- Student Login Form -->
+        <form v-if="loginRole === 'student'" @submit.prevent="loginStudent" class="space-y-4">
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Select Student Name</label>
+                <select v-model="selectedStudentId" required class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm bg-white">
+                    <option value="" disabled>Choose your name</option>
+                    <option v-for="s in students" :key="s.id" :value="s.id">{{ s.name }} (Class {{ s.studentClass }})</option>
+                </select>
+            </div>
+            <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold shadow-lg hover:bg-indigo-700 active:scale-95 transition">
+                Enter Student Dashboard
+            </button>
+        </form>
+
+        <!-- Admin / Staff Login Form -->
+        <form v-if="loginRole === 'admin'" @submit.prevent="loginAdmin" class="space-y-4">
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Enter Admin PIN</label>
+                <input type="password" v-model="adminPinInput" placeholder="Default PIN: 12345" required class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-center text-lg font-bold tracking-widest">
+            </div>
+            <p v-if="loginError" class="text-xs font-bold text-red-500 text-center">{{ loginError }}</p>
+            <button type="submit" class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold shadow-lg hover:bg-slate-800 active:scale-95 transition">
+                Unlock Admin Console
+            </button>
+        </form>
+    </div>
+
+    <!-- MAIN APP DASHBOARD -->
+    <template v-else>
+        <!-- Header -->
+        <header class="bg-indigo-600 text-white p-4 flex justify-between items-center sticky top-0 z-10 shadow-md">
+            <div>
+                <h1 class="text-lg font-bold tracking-wide flex items-center gap-2">
+                    <i class="fa-solid fa-graduation-cap"></i> {{ settings.appTitle }}
+                </h1>
+                <p class="text-[10px] text-indigo-200">
+                    Logged in as: <span class="font-bold uppercase">{{ currentUser.role === 'admin' ? 'Admin / Staff' : currentUser.name }}</span>
+                </p>
+            </div>
+            <button @click="logout" class="text-xs bg-indigo-700 hover:bg-indigo-800 text-white px-2.5 py-1.5 rounded-lg font-semibold flex items-center gap-1 transition">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </button>
+        </header>
+
+        <main class="flex-1 p-4 overflow-y-auto">
+
+            <!-- ================= STUDENT VIEW ================= -->
+            <div v-if="currentUser.role === 'student'" class="space-y-4">
+                
+                <!-- Attendance & Fee Summary -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl">
+                        <p class="text-xs text-emerald-700 font-semibold flex items-center gap-1">
+                            <i class="fa-solid fa-calendar-check"></i> Attendance
+                        </p>
+                        <p class="text-2xl font-black text-emerald-900 mt-1">{{ getStudentAttendancePct(currentUser.id) }}%</p>
+                        <p class="text-[10px] text-emerald-600 mt-0.5">This Month</p>
+                    </div>
+                    <div class="p-3 bg-amber-50 border border-amber-200 rounded-2xl">
+                        <p class="text-xs text-amber-700 font-semibold flex items-center gap-1">
+                            <i class="fa-solid fa-indian-rupee-sign"></i> Pending Fee
+                        </p>
+                        <p class="text-2xl font-black text-amber-900 mt-1">₹{{ currentUser.pendingFee }}</p>
+                        <p class="text-[10px] text-amber-600 mt-0.5">Due amount</p>
+                    </div>
+                </div>
+
+                <!-- UPI Payment Button -->
+                <a :href="'upi://pay?pa=' + settings.upiId + '&pn=' + encodeURIComponent(settings.appTitle) + '&am=' + currentUser.pendingFee + '&cu=INR'"
+                   class="w-full bg-emerald-600 text-white py-3 px-4 rounded-xl font-bold shadow-md flex items-center justify-center gap-2 hover:bg-emerald-700 active:scale-95 transition text-sm">
+                    <i class="fa-solid fa-qrcode"></i> Pay Pending Fee via UPI
+                </a>
+
+                <!-- Today's Homework -->
+                <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-1">
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                        <i class="fa-solid fa-book"></i> Today's Homework
+                    </p>
+                    <p class="text-sm font-semibold text-slate-800">{{ currentUser.homework || 'No homework assigned today.' }}</p>
+                </div>
+
+                <!-- Comprehensive Progress Report -->
+                <div class="p-4 bg-white border border-slate-200 rounded-2xl space-y-3 shadow-sm">
+                    <h3 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                        <i class="fa-solid fa-chart-line text-indigo-600"></i> Performance Breakdown
+                    </h3>
+                    
+                    <div class="space-y-2">
+                        <div>
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span>Studies / Academics</span>
+                                <span class="text-indigo-600">{{ currentUser.performance.studies }}%</span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-2">
+                                <div class="bg-indigo-600 h-2 rounded-full" :style="{ width: currentUser.performance.studies + '%' }"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span>Discipline</span>
+                                <span class="text-emerald-600">{{ currentUser.performance.discipline }}%</span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-2">
+                                <div class="bg-emerald-500 h-2 rounded-full" :style="{ width: currentUser.performance.discipline + '%' }"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span>Activities & Participation</span>
+                                <span class="text-amber-600">{{ currentUser.performance.activities }}%</span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-2">
+                                <div class="bg-amber-500 h-2 rounded-full" :style="{ width: currentUser.performance.activities + '%' }"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ================= ADMIN / STAFF VIEW ================= -->
+            <div v-if="currentUser.role === 'admin'" class="space-y-4">
+                
+                <!-- Navigation Tabs inside Admin View -->
+                <div class="flex border-b border-slate-200 gap-2 pb-2 overflow-x-auto text-xs font-bold">
+                    <button @click="adminTab = 'students'" :class="adminTab === 'students' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'" class="px-3 py-2 rounded-lg transition whitespace-nowrap">
+                        <i class="fa-solid fa-users"></i> All Students
+                    </button>
+                    <button @click="adminTab = 'attendance'" :class="adminTab === 'attendance' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'" class="px-3 py-2 rounded-lg transition whitespace-nowrap">
+                        <i class="fa-solid fa-clipboard-user"></i> Take Attendance
+                    </button>
+                    <button @click="adminTab = 'add'" :class="adminTab === 'add' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'" class="px-3 py-2 rounded-lg transition whitespace-nowrap">
+                        <i class="fa-solid fa-user-plus"></i> Add Student
+                    </button>
+                    <button @click="adminTab = 'settings'" :class="adminTab === 'settings' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'" class="px-3 py-2 rounded-lg transition whitespace-nowrap">
+                        <i class="fa-solid fa-gear"></i> Settings
+                    </button>
+                </div>
+
+                <!-- TAB: ALL STUDENTS (RECTANGULAR BARS WITH METRICS) -->
+                <div v-if="adminTab === 'students'" class="space-y-3">
+                    <h2 class="text-sm font-bold text-slate-700">Student Profiles & Metrics</h2>
+                    <div v-for="s in students" :key="s.id" class="p-3 border border-slate-200 rounded-xl bg-white shadow-sm space-y-2">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-bold text-slate-800 text-sm">{{ s.name }}</h3>
+                                <p class="text-xs text-slate-500">Class {{ s.studentClass }} | Phone: {{ s.phone }}</p>
+                            </div>
+                            <span class="text-xs px-2 py-0.5 rounded font-bold" :class="s.pendingFee > 0 ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'">
+                                Fee: ₹{{ s.pendingFee }}
+                            </span>
+                        </div>
+
+                        <!-- Mini metrics bar -->
+                        <div class="grid grid-cols-3 gap-1 bg-slate-50 p-2 rounded-lg text-center text-[10px]">
+                            <div>
+                                <span class="text-slate-400 block">Attendance</span>
+                                <span class="font-bold text-slate-700">{{ getStudentAttendancePct(s.id) }}%</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 block">Studies</span>
+                                <span class="font-bold text-slate-700">{{ s.performance.studies }}%</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 block">Discipline</span>
+                                <span class="font-bold text-slate-700">{{ s.performance.discipline }}%</span>
+                            </div>
+                        </div>
+
+                        <!-- Update Fields -->
+                        <div class="pt-2 border-t border-slate-100 grid grid-cols-2 gap-2 text-xs">
+                            <button @click="editHomework(s)" class="bg-indigo-50 text-indigo-700 py-1 rounded font-semibold hover:bg-indigo-100">
+                                Set Homework
+                            </button>
+                            <button @click="editPerformance(s)" class="bg-emerald-50 text-emerald-700 py-1 rounded font-semibold hover:bg-emerald-100">
+                                Update Scores
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: ATTENDANCE -->
+                <div v-if="adminTab === 'attendance'" class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-sm font-bold text-slate-700">Mark Attendance Today</h2>
+                        <input type="date" v-model="attendanceDate" class="text-xs p-1 border rounded border-slate-300">
+                    </div>
+                    <div class="space-y-2">
+                        <div v-for="s in students" :key="s.id" class="p-3 border rounded-xl flex justify-between items-center bg-white shadow-sm">
+                            <div>
+                                <p class="font-bold text-xs text-slate-800">{{ s.name }}</p>
+                                <p class="text-[10px] text-slate-500">Class {{ s.studentClass }}</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button @click="markAttendance(s.id, 'P')" :class="getAttendanceStatus(s.id) === 'P' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'" class="px-3 py-1 text-xs font-bold rounded-lg transition">P</button>
+                                <button @click="markAttendance(s.id, 'A')" :class="getAttendanceStatus(s.id) === 'A' ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-600'" class="px-3 py-1 text-xs font-bold rounded-lg transition">A</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: ADD STUDENT -->
+                <div v-if="adminTab === 'add'" class="bg-white p-4 border border-slate-200 rounded-2xl space-y-3 shadow-sm">
+                    <h2 class="text-sm font-bold text-slate-800">Add New Student</h2>
+                    <form @submit.prevent="addNewStudent" class="space-y-3 text-xs">
+                        <div>
+                            <label class="block font-semibold mb-1">Student Name</label>
+                            <input v-model="newStudent.name" type="text" required class="w-full p-2 border rounded-lg outline-none focus:ring-1 focus:ring-indigo-500">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block font-semibold mb-1">Class</label>
+                                <input v-model="newStudent.studentClass" type="text" required class="w-full p-2 border rounded-lg outline-none focus:ring-1 focus:ring-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block font-semibold mb-1">Pending Fee (₹)</label>
+                                <input v-model.number="newStudent.pendingFee" type="number" required class="w-full p-2 border rounded-lg outline-none focus:ring-1 focus:ring-indigo-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block font-semibold mb-1">Phone Number</label>
+                            <input v-model="newStudent.phone" type="tel" required class="w-full p-2 border rounded-lg outline-none focus:ring-1 focus:ring-indigo-500">
+                        </div>
+                        <button type="submit" class="w-full bg-indigo-600 text-white py-2.5 rounded-lg font-bold shadow hover:bg-indigo-700 transition">
+                            Save Student Record
+                        </button>
+                    </form>
+                </div>
+
+                <!-- TAB: SETTINGS & PASSWORD CHANGE -->
+                <div v-if="adminTab === 'settings'" class="bg-white p-4 border border-slate-200 rounded-2xl space-y-4 shadow-sm text-xs">
+                    <h2 class="text-sm font-bold text-slate-800">Tuition App Configuration</h2>
+                    
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block font-semibold mb-1">Tuition App Name</label>
+                            <input v-model="settings.appTitle" type="text" class="w-full p-2 border rounded-lg outline-none">
+                        </div>
+                        <div>
+                            <label class="block font-semibold mb-1">UPI ID for Fee Payment</label>
+                            <input v-model="settings.upiId" type="text" class="w-full p-2 border rounded-lg outline-none">
+                        </div>
+                        <div>
+                            <label class="block font-semibold mb-1">Change Admin PIN (Current: {{ settings.adminPin }})</label>
+                            <input v-model="settings.adminPin" type="text" maxlength="6" class="w-full p-2 border rounded-lg outline-none font-bold tracking-widest">
+                        </div>
+                        <button @click="saveSettings" class="w-full bg-slate-900 text-white py-2.5 rounded-lg font-bold shadow hover:bg-slate-800 transition">
+                            Save All Settings
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+    </template>
+
+</div>
+
+<script>
+    const { createApp, ref, onMounted } = Vue;
+
+    createApp({
+        setup() {
+            const settings = ref({
+                appTitle: 'TuitionDesk',
+                adminPin: '12345',
+                upiId: 'tuitiondesk@upi'
+            });
+
+            const currentUser = ref(null);
+            const loginRole = ref('student');
+            const selectedStudentId = ref('');
+            const adminPinInput = ref('');
+            const loginError = ref('');
+            const adminTab = ref('students');
+            const attendanceDate = ref(new Date().toISOString().split('T')[0]);
+
+            const students = ref([
+                {
+                    id: '1',
+                                                                                                          
