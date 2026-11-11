@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TuitionDesk</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vue.js 3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 </head>
 <body class="bg-slate-100 font-sans text-slate-800 antialiased min-h-screen flex flex-col items-center justify-center p-0 sm:p-4">
@@ -260,7 +262,7 @@
 </div>
 
 <script>
-    const { createApp, ref, reactive, computed, nextTick } = Vue;
+    const { createApp, ref, reactive, computed } = Vue;
 
     createApp({
         setup() {
@@ -286,4 +288,4 @@
                 homework: 'Complete Math Exercise 5.2 & read Chapter 4 Science.'
             }));
 
-            const students = ref(loadSto
+  
