@@ -1,315 +1,283 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-slate-100">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TuitionDesk - Complete Management System</title>
+    <title id="page-title">TuitionDesk</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vue.js 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 </head>
-<body class="h-full flex flex-col justify-center items-center p-4 font-sans">
+<body class="bg-slate-100 font-sans text-slate-800 antialiased min-h-screen flex flex-col items-center justify-center p-0 sm:p-4">
 
-    <!-- Main Container -->
-    <div id="app-container" class="w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
+<div id="app" class="w-full max-w-md bg-white min-h-screen sm:min-h-[85vh] sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col relative border border-slate-200">
+    
+    <!-- HEADER -->
+    <header class="bg-indigo-600 text-white p-4 flex justify-between items-center shadow-md">
+        <div class="flex items-center gap-2">
+            <span class="text-2xl">📚</span>
+            <h1 class="text-lg font-black tracking-wide">{{ appSettings.appName }}</h1>
+        </div>
+        <div class="flex items-center gap-2">
+            <span v-if="currentUser" class="text-[10px] bg-indigo-800 text-indigo-200 px-2 py-1 rounded-full font-bold uppercase">
+                {{ currentUser.role === 'admin' ? '👑 Admin' : '🎓 ' + currentUser.name }}
+            </span>
+            <button v-if="currentUser" @click="logout" class="text-xs bg-red-500 hover:bg-red-600 text-white font-bold px-2.5 py-1 rounded-lg transition">Logout</button>
+        </div>
+    </header>
+
+    <!-- ================= AUTHENTICATION / LOGIN SCREEN ================= -->
+    <main v-if="!currentUser" class="flex-1 p-6 flex flex-col justify-center space-y-6 bg-slate-50">
+        <div class="text-center space-y-2">
+            <h2 class="text-2xl font-black text-slate-900">Welcome to TuitionDesk</h2>
+            <p class="text-xs text-slate-500">Select your role to access your portal</p>
+        </div>
+
+        <div class="flex bg-slate-200 p-1.5 rounded-2xl">
+            <button @click="authMode = 'student'" :class="authMode === 'student' ? 'bg-white text-indigo-600 shadow-md font-bold' : 'text-slate-600 font-semibold'" class="flex-1 py-3 text-sm rounded-xl transition">Student / Parent</button>
+            <button @click="authMode = 'admin'" :class="authMode === 'admin' ? 'bg-white text-indigo-600 shadow-md font-bold' : 'text-slate-600 font-semibold'" class="flex-1 py-3 text-sm rounded-xl transition">Admin / Staff</button>
+        </div>
+
+        <!-- Student Login Form -->
+        <div v-if="authMode === 'student'" class="space-y-4 bg-white p-5 rounded-3xl border shadow-sm">
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Select Your Name</label>
+                <select v-model="selectedStudentName" class="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl p-3.5 font-bold text-slate-800 focus:border-indigo-500 focus:outline-none">
+                    <option disabled value="">-- Choose Student --</option>
+                    <option v-for="s in students" :key="s.id" :value="s.name">{{ s.name }} (Class {{ s.class }})</option>
+                </select>
+            </div>
+            <button @click="loginStudent" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-2xl shadow-lg shadow-indigo-100 transition">Open Student Portal</button>
+        </div>
+
+        <!-- Admin Login Form -->
+        <div v-if="authMode === 'admin'" class="space-y-4 bg-white p-5 rounded-3xl border shadow-sm">
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Enter Admin PIN</label>
+                <input type="password" v-model="adminPinInput" placeholder="Default PIN: 12345" maxlength="6" class="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl p-3.5 text-center font-mono text-lg font-black tracking-widest focus:border-indigo-500 focus:outline-none" @keyup.enter="loginAdmin">
+            </div>
+            <p v-if="pinError" class="text-xs font-bold text-red-500 text-center">Incorrect PIN! Try 12345</p>
+            <button @click="loginAdmin" class="w-full bg-slate-900 hover:bg-black text-white font-black py-4 rounded-2xl shadow-lg transition">Unlock Admin Console</button>
+        </div>
+    </main>
+
+    <!-- ================= DASHBOARD SCREEN ================= -->
+    <main v-else class="flex-1 overflow-y-auto p-4 space-y-4 pb-24 bg-white">
         
-        <!-- HEADER -->
-        <div class="bg-gradient-to-r from-indigo-600 to-violet-700 p-6 text-white text-center relative">
-            <h1 id="app-title" class="text-2xl font-black tracking-tight">TuitionDesk</h1>
-            <p id="app-subtitle" class="text-indigo-100 text-sm mt-1 font-medium">Advanced Student & Tuition Manager</p>
+        <!-- STUDENT VIEW PORTAL -->
+        <div v-if="currentUser.role === 'student'" class="space-y-4">
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-5 rounded-3xl shadow-lg space-y-1">
+                <p class="text-xs text-blue-200 font-medium">Student Portal</p>
+                <h3 class="text-xl font-black">{{ currentUser.name }}</h3>
+                <p class="text-xs bg-white/20 px-2.5 py-1 rounded-full inline-block font-semibold">Class {{ currentStudentObj.class }}</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl">
+                    <p class="text-xs text-emerald-700 font-bold uppercase">Attendance Rate</p>
+                    <p class="text-2xl font-black text-emerald-900 mt-1">{{ calculateStudentAttendance(currentUser.name) }}%</p>
+                </div>
+                <div :class="currentStudentObj.feeStatus === 'Paid' ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'" class="border p-4 rounded-2xl">
+                    <p class="text-xs font-bold uppercase" :class="currentStudentObj.feeStatus === 'Paid' ? 'text-emerald-700' : 'text-red-700'">Fee Status</p>
+                    <p class="text-lg font-black mt-1" :class="currentStudentObj.feeStatus === 'Paid' ? 'text-emerald-900' : 'text-red-900'">{{ currentStudentObj.feeStatus }} (₹{{ currentStudentObj.feeAmount }})</p>
+                </div>
+            </div>
+
+            <!-- Homework box -->
+            <div class="bg-slate-50 border-2 border-slate-100 p-4 rounded-2xl space-y-2">
+                <p class="text-xs font-black uppercase text-indigo-600 flex items-center gap-1">📌 Today's Assigned Homework</p>
+                <p class="text-sm font-medium text-slate-700">{{ appSettings.homework || 'No homework assigned for today yet.' }}</p>
+            </div>
+
+            <!-- Performance Meters -->
+            <div class="bg-slate-50 border-2 border-slate-100 p-4 rounded-2xl space-y-3">
+                <p class="text-xs font-black uppercase text-slate-500">📊 Monthly Performance Report</p>
+                <div class="space-y-2">
+                    <div>
+                        <div class="flex justify-between text-xs font-bold mb-1"><span>Study & Tests</span><span>{{ currentStudentObj.perfStudy }}%</span></div>
+                        <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden"><div class="bg-indigo-600 h-full rounded-full" :style="{width: currentStudentObj.perfStudy + '%'}"></div></div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs font-bold mb-1"><span>Discipline & Behavior</span><span>{{ currentStudentObj.perfDiscipline }}%</span></div>
+                        <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden"><div class="bg-emerald-600 h-full rounded-full" :style="{width: currentStudentObj.perfDiscipline + '%'}"></div></div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs font-bold mb-1"><span>Class Activities</span><span>{{ currentStudentObj.perfActivities }}%</span></div>
+                        <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden"><div class="bg-amber-500 h-full rounded-full" :style="{width: currentStudentObj.perfActivities + '%'}"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- UPI Payment Button -->
+            <button @click="payFeeUPI" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-2xl font-black shadow-lg shadow-emerald-100 flex justify-center items-center gap-2 transition">
+                💳 Pay Tuition Fee via UPI (GPay / Paytm)
+            </button>
         </div>
 
-        <!-- VIEW 1: AUTHENTICATION -->
-        <div id="view-auth" class="p-6 space-y-6">
-            <div class="flex bg-slate-100 p-1.5 rounded-2xl">
-                <button id="tab-auth-student" onclick="switchAuthMode('student')" class="flex-1 py-3 text-sm font-bold rounded-xl bg-white text-indigo-600 shadow-md transition-all">Student / Parent</button>
-                <button id="tab-auth-admin" onclick="switchAuthMode('admin')" class="flex-1 py-3 text-sm font-bold rounded-xl text-slate-600 transition-all">Admin / Staff</button>
+
+        <!-- ADMIN / STAFF VIEW PORTAL -->
+        <div v-if="currentUser.role === 'admin'" class="space-y-4">
+            
+            <!-- ADMIN TABS NAVIGATION -->
+            <div class="grid grid-cols-4 gap-1 bg-slate-100 p-1 rounded-2xl text-xs font-bold">
+                <button @click="adminTab = 'overview'" :class="adminTab === 'overview' ? 'bg-white text-indigo-600 shadow' : 'text-slate-600'" class="py-2.5 rounded-xl transition">Overview</button>
+                <button @click="adminTab = 'students'" :class="adminTab === 'students' ? 'bg-white text-indigo-600 shadow' : 'text-slate-600'" class="py-2.5 rounded-xl transition">Students</button>
+                <button @click="adminTab = 'attendance'" :class="adminTab === 'attendance' ? 'bg-white text-indigo-600 shadow' : 'text-slate-600'" class="py-2.5 rounded-xl transition">Attendance</button>
+                <button @click="adminTab = 'settings'" :class="adminTab === 'settings' ? 'bg-white text-indigo-600 shadow' : 'text-slate-600'" class="py-2.5 rounded-xl transition">Settings</button>
             </div>
 
-            <!-- Student Login -->
-            <div id="form-student" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Select Student Name</label>
-                    <select id="student-selector" class="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-4 py-3.5 font-bold text-slate-800 focus:border-indigo-500 focus:outline-none">
-                        <option value="Aarav Sharma">Aarav Sharma</option>
-                        <option value="Priya Verma">Priya Verma</option>
-                        <option value="Kabir Singh">Kabir Singh</option>
-                    </select>
+            <!-- TAB 1: OVERVIEW & FEES -->
+            <div v-if="adminTab === 'overview'" class="space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-2xl">
+                        <p class="text-xs font-bold text-indigo-600 uppercase">Total Students</p>
+                        <p class="text-2xl font-black text-indigo-950 mt-1">{{ students.length }}</p>
+                    </div>
+                    <div class="bg-emerald-50 border border-emerald-100 p-4 rounded-2xl">
+                        <p class="text-xs font-bold text-emerald-600 uppercase">Fees Collected</p>
+                        <p class="text-2xl font-black text-emerald-950 mt-1">₹{{ totalFeesCollected }}</p>
+                    </div>
                 </div>
-                <button onclick="loginAsStudent()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-2xl shadow-lg transition-all">Enter Student Dashboard</button>
+
+                <!-- Fees Alert Management -->
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-black text-slate-800 text-sm">Fee Status & WhatsApp Alerts</h3>
+                        <button @click="remindAllFees" class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-3 py-2 rounded-xl shadow transition">📢 Reminder All</button>
+                    </div>
+
+                    <div v-for="s in students" :key="s.id" class="bg-slate-50 border p-3.5 rounded-2xl flex justify-between items-center">
+                        <div>
+                            <p class="font-bold text-sm text-slate-900">{{ s.name }} (Class {{ s.class }})</p>
+                            <p class="text-xs font-semibold" :class="s.feeStatus === 'Paid' ? 'text-emerald-600' : 'text-red-500'">Status: {{ s.feeStatus }} (₹{{ s.feeAmount }})</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button @click="toggleFeeStatus(s)" class="text-xs px-2.5 py-1.5 rounded-lg font-bold border" :class="s.feeStatus === 'Paid' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-red-100 text-red-800 border-red-300'">
+                                {{ s.feeStatus }}
+                            </button>
+                            <button @click="sendFeeWhatsapp(s)" class="bg-green-500 hover:bg-green-600 text-white p-2 rounded-xl shadow text-xs font-bold">💬 Alert</button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Admin Login -->
-            <div id="form-admin" class="space-y-4 hidden">
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Enter Admin PIN</label>
-                    <input type="password" id="admin-pin-input" placeholder="Default PIN: 12345" class="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-4 py-3.5 font-mono text-center tracking-widest font-black text-slate-800 focus:border-indigo-500 focus:outline-none">
+            <!-- TAB 2: STUDENTS DIRECTORY & PERFORMANCE BARS -->
+            <div v-if="adminTab === 'students'" class="space-y-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-black text-slate-800 text-sm">Student Records & Performance</h3>
+                    <button @click="showAddModal = true" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow">+ Add Student</button>
                 </div>
-                <div id="admin-login-error" class="bg-red-50 text-red-600 text-xs font-bold p-3 rounded-xl border border-red-200 text-center hidden">Wrong PIN! Please enter 12345.</div>
-                <button onclick="verifyAdminPin()" class="w-full bg-slate-900 hover:bg-black text-white font-black py-4 rounded-2xl shadow-lg transition-all">Unlock Admin Console</button>
+
+                <div class="space-y-3">
+                    <div v-for="s in students" :key="s.id" class="bg-slate-50 border p-4 rounded-2xl space-y-3">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-black text-base text-slate-900">{{ s.name }}</h4>
+                                <p class="text-xs text-slate-500 font-medium">Class: {{ s.class }} | Phone: {{ s.phone }}</p>
+                            </div>
+                            <button @click="deleteStudent(s.id)" class="text-red-500 hover:text-red-700 text-xs font-bold">Delete</button>
+                        </div>
+
+                        <!-- Performance Mini-Bars -->
+                        <div class="grid grid-cols-3 gap-2 pt-2 border-t text-center">
+                            <div class="bg-white p-2 rounded-xl border">
+                                <span class="text-[10px] text-slate-400 font-bold block">Study</span>
+                                <span class="text-xs font-black text-indigo-600">{{ s.perfStudy }}%</span>
+                            </div>
+                            <div class="bg-white p-2 rounded-xl border">
+                                <span class="text-[10px] text-slate-400 font-bold block">Discipline</span>
+                                <span class="text-xs font-black text-emerald-600">{{ s.perfDiscipline }}%</span>
+                            </div>
+                            <div class="bg-white p-2 rounded-xl border">
+                                <span class="text-[10px] text-slate-400 font-bold block">Activities</span>
+                                <span class="text-xs font-black text-amber-600">{{ s.perfActivities }}%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            <!-- TAB 3: DAILY ATTENDANCE (P / A with Date Picker) -->
+            <div v-if="adminTab === 'attendance'" class="space-y-4">
+                <div class="flex justify-between items-center bg-indigo-50 p-3 rounded-2xl border border-indigo-100">
+                    <button @click="changeDate(-1)" class="px-3 py-1 bg-white rounded-xl shadow text-xs font-bold">◀ Prev Date</button>
+                    <input type="date" v-model="selectedDate" class="bg-transparent font-black text-xs text-indigo-900 text-center focus:outline-none">
+                    <button @click="changeDate(1)" class="px-3 py-1 bg-white rounded-xl shadow text-xs font-bold">Next ▶</button>
+                </div>
+
+                <div class="space-y-2">
+                    <div v-for="s in students" :key="s.id" class="bg-slate-50 border p-3 rounded-2xl flex justify-between items-center">
+                        <span class="font-bold text-sm text-slate-800">{{ s.name }}</span>
+                        <div class="flex gap-1.5">
+                            <button @click="markAttendance(s.name, 'P')" :class="getAttendanceStatus(s.name) === 'P' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-200 text-slate-600'" class="px-4 py-1.5 text-xs font-black rounded-xl transition">P (Present)</button>
+                            <button @click="markAttendance(s.name, 'A')" :class="getAttendanceStatus(s.name) === 'A' ? 'bg-red-600 text-white shadow' : 'bg-slate-200 text-slate-600'" class="px-4 py-1.5 text-xs font-black rounded-xl transition">A (Absent)</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: SETTINGS & HOMEWORK -->
+            <div v-if="adminTab === 'settings'" class="space-y-4">
+                <div class="bg-slate-50 border p-4 rounded-2xl space-y-4">
+                    <h3 class="font-black text-slate-800 text-sm">📝 Daily Homework Broadcast</h3>
+                    <div>
+                        <textarea v-model="appSettings.homework" rows="3" placeholder="Enter today's homework for all students..." class="w-full bg-white border-2 border-slate-200 rounded-2xl p-3 text-sm text-slate-800 font-medium focus:border-indigo-500 focus:outline-none"></textarea>
+                        <button @click="saveHomework" class="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow">Save & Broadcast Homework</button>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 border p-4 rounded-2xl space-y-4">
+                    <h3 class="font-black text-slate-800 text-sm">⚙️ App Configuration</h3>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">Tuition App Name</label>
+                        <input type="text" v-model="appSettings.appName" class="w-full bg-white border p-2.5 rounded-xl font-bold text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">Admin Passcode PIN</label>
+                        <input type="text" v-model="appSettings.adminPin" maxlength="6" class="w-full bg-white border p-2.5 rounded-xl font-mono font-bold text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">UPI ID for Fee Collection</label>
+                        <input type="text" v-model="appSettings.upiId" class="w-full bg-white border p-2.5 rounded-xl font-mono font-bold text-sm">
+                    </div>
+                    <button @click="saveSettings" class="w-full bg-slate-900 hover:bg-black text-white text-xs font-bold py-3 rounded-xl shadow">Save Settings</button>
+                </div>
+            </div>
+
         </div>
 
-        <!-- VIEW 2: DASHBOARD -->
-        <div id="view-dashboard" class="hidden flex flex-col h-[650px]">
-            <!-- Dashboard Header -->
-            <div class="bg-slate-50 border-b p-4 flex items-center justify-between">
-                <div>
-                    <h2 id="dashboard-user-title" class="text-lg font-black text-slate-800">Dashboard</h2>
-                    <p class="text-xs text-slate-500 font-medium">Active Date: <span id="current-date-display" class="font-bold text-indigo-600"></span></p>
-                </div>
-                <button onclick="logout()" class="bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold px-4 py-2 rounded-xl transition-all">Logout</button>
-            </div>
+    </main>
 
-            <!-- Stats Bar (Admin) -->
-            <div id="admin-stats-bar" class="grid grid-cols-2 gap-3 p-4 bg-indigo-900 text-white">
-                <div class="bg-indigo-800/50 p-3 rounded-2xl border border-indigo-700/50">
-                    <p class="text-[10px] uppercase font-bold text-indigo-200">Today's Attendance</p>
-                    <p class="text-xl font-black mt-1" id="stat-attendance-count">2 / 3 Present</p>
-                </div>
-                <div class="bg-indigo-800/50 p-3 rounded-2xl border border-indigo-700/50">
-                    <p class="text-[10px] uppercase font-bold text-indigo-200">Total Fees Collected</p>
-                    <p class="text-xl font-black mt-1">₹1,500 / ₹3,000</p>
-                </div>
+    <!-- ADD STUDENT MODAL -->
+    <div v-if="showAddModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-6 space-y-4 shadow-2xl">
+            <h3 class="text-lg font-black text-slate-900">Add New Student</h3>
+            <div class="space-y-3">
+                <input type="text" v-model="newStudent.name" placeholder="Student Name" class="w-full border p-3 rounded-xl text-sm font-semibold">
+                <input type="text" v-model="newStudent.class" placeholder="Class (e.g. 8)" class="w-full border p-3 rounded-xl text-sm font-semibold">
+                <input type="text" v-model="newStudent.phone" placeholder="Parent WhatsApp Phone (10 digits)" class="w-full border p-3 rounded-xl text-sm font-semibold">
+                <input type="number" v-model="newStudent.feeAmount" placeholder="Monthly Fee Amount (₹)" class="w-full border p-3 rounded-xl text-sm font-semibold">
             </div>
-
-            <!-- TAB CONTENT AREA -->
-            <div id="tab-content" class="flex-1 p-6 overflow-y-auto space-y-6">
-                <!-- Content loaded dynamically -->
-            </div>
-
-            <!-- NAVIGATION BAR -->
-            <div id="admin-nav-bar" class="grid grid-cols-5 border-t bg-white py-2 px-1 text-center">
-                <button onclick="switchTab('overview')" id="nav-btn-overview" class="py-2 transition-all flex flex-col items-center text-indigo-600 font-black scale-105">
-                    <span class="text-lg">🏠</span>
-                    <span class="text-[10px]">Home</span>
-                </button>
-                <button onclick="switchTab('students')" id="nav-btn-students" class="py-2 transition-all flex flex-col items-center text-slate-400 hover:text-slate-600">
-                    <span class="text-lg">👥</span>
-                    <span class="text-[10px]">Students</span>
-                </button>
-                <button onclick="switchTab('attendance')" id="nav-btn-attendance" class="py-2 transition-all flex flex-col items-center text-slate-400 hover:text-slate-600">
-                    <span class="text-lg">📅</span>
-                    <span class="text-[10px]">Attendance</span>
-                </button>
-                <button onclick="switchTab('fees')" id="nav-btn-fees" class="py-2 transition-all flex flex-col items-center text-slate-400 hover:text-slate-600">
-                    <span class="text-lg">💳</span>
-                    <span class="text-[10px]">Fees</span>
-                </button>
-                <button onclick="switchTab('settings')" id="nav-btn-settings" class="py-2 transition-all flex flex-col items-center text-slate-400 hover:text-slate-600">
-                    <span class="text-lg">⚙️</span>
-                    <span class="text-[10px]">Settings</span>
-                </button>
+            <div class="flex gap-2 pt-2">
+                <button @click="showAddModal = false" class="flex-1 bg-slate-100 py-3 rounded-xl font-bold text-xs text-slate-600">Cancel</button>
+                <button @click="addNewStudent" class="flex-1 bg-indigo-600 py-3 rounded-xl font-bold text-xs text-white shadow">Save Student</button>
             </div>
         </div>
     </div>
 
-    <!-- SCRIPT -->
-    <script>
-        let currentRole = 'admin';
-        let loggedInStudent = '';
-        
-        // App Data State
-        let selectedDate = new Date().toISOString().split('T')[0];
-        let attendanceRecords = {
-            [selectedDate]: { 'Aarav Sharma': 'P', 'Priya Verma': 'A', 'Kabir Singh': 'P' }
-        };
-        let studentFees = {
-            'Aarav Sharma': { status: 'Paid', amount: 1500, phone: '9876543210' },
-            'Priya Verma': { status: 'Pending', amount: 1500, phone: '9876543211' },
-            'Kabir Singh': { status: 'Paid', amount: 1500, phone: '9876543212' }
-        };
-        let dailyHomework = "Complete Math Exercise 5.2 & Read Science Chapter 4.";
+</div>
 
-        updateDateDisplay();
+<!-- VUE SCRIPT LOGIC -->
+<script>
+    const { createApp, ref, reactive, computed, onMounted } = Vue;
 
-        function updateDateDisplay() {
-            document.getElementById('current-date-display').innerText = selectedDate;
-        }
+    createApp({
+        setup() {
+            // Persistent storage helpers
+            const loadStorage = (key, defaultVal) => JSON.parse(localStorage.getItem(key)) || defaultVal;
+            const saveStorage = (key, val) => localStorage.setItem(key, JSON.stringify(val));
 
-        function changeDate(days) {
-            let d = new Date(selectedDate);
-            d.setDate(d.getDate() + days);
-            selectedDate = d.toISOString().split('T')[0];
-            updateDateDisplay();
-            switchTab('attendance');
-        }
-
-        function switchAuthMode(mode) {
-            const stuTab = document.getElementById('tab-auth-student');
-            const adminTab = document.getElementById('tab-auth-admin');
-            const stuForm = document.getElementById('form-student');
-            const adminForm = document.getElementById('form-admin');
-
-            if (mode === 'student') {
-                stuTab.className = "flex-1 py-3 text-sm font-bold rounded-xl bg-white text-indigo-600 shadow-md transition-all";
-                adminTab.className = "flex-1 py-3 text-sm font-bold rounded-xl text-slate-600 transition-all";
-                stuForm.classList.remove('hidden');
-                adminForm.classList.add('hidden');
-            } else {
-                adminTab.className = "flex-1 py-3 text-sm font-bold rounded-xl bg-white text-indigo-600 shadow-md transition-all";
-                stuTab.className = "flex-1 py-3 text-sm font-bold rounded-xl text-slate-600 transition-all";
-                adminForm.classList.remove('hidden');
-                stuForm.classList.add('hidden');
-                document.getElementById('admin-login-error').classList.add('hidden');
-            }
-        }
-
-        function verifyAdminPin() {
-            const pin = document.getElementById('admin-pin-input').value.trim();
-            if (pin === "12345") {
-                document.getElementById('admin-login-error').classList.add('hidden');
-                initDashboard('admin');
-            } else {
-                document.getElementById('admin-login-error').classList.remove('hidden');
-            }
-        }
-
-        function loginAsStudent() {
-            loggedInStudent = document.getElementById('student-selector').value;
-            initDashboard('student');
-        }
-
-        function initDashboard(role) {
-            currentRole = role;
-            document.getElementById('view-auth').classList.add('hidden');
-            document.getElementById('view-dashboard').classList.remove('hidden');
-            
-            const statsBar = document.getElementById('admin-stats-bar');
-            const navBar = document.getElementById('admin-nav-bar');
-
-            if (role === 'admin') {
-                document.getElementById('dashboard-user-title').innerText = "Administrator Panel";
-                statsBar.classList.remove('hidden');
-                navBar.classList.remove('hidden');
-                switchTab('overview');
-            } else {
-                document.getElementById('dashboard-user-title').innerText = "Student: " + loggedInStudent;
-                statsBar.classList.add('hidden');
-                navBar.classList.add('hidden');
-                renderStudentPortal();
-            }
-        }
-
-        function switchTab(tabId) {
-            ['overview', 'students', 'attendance', 'fees', 'settings'].forEach(id => {
-                const btn = document.getElementById(`nav-btn-${id}`);
-                if(btn) btn.className = "py-2 transition-all flex flex-col items-center " + (id === tabId ? "text-indigo-600 font-black scale-105" : "text-slate-400 hover:text-slate-600");
-            });
-
-            const container = document.getElementById('tab-content');
-            container.innerHTML = '';
-
-            if(!attendanceRecords[selectedDate]) {
-                attendanceRecords[selectedDate] = { 'Aarav Sharma': 'P', 'Priya Verma': 'P', 'Kabir Singh': 'P' };
-            }
-
-            switch(tabId) {
-                case 'overview':
-                    container.innerHTML = `
-                        <div class="space-y-4">
-                            <div class="bg-gradient-to-br from-indigo-500 to-violet-600 p-6 rounded-3xl text-white shadow-lg">
-                                <h3 class="text-xl font-black">Welcome Back, Admin</h3>
-                                <p class="text-xs text-indigo-100 mt-1">Today's Homework & Quick Overview</p>
-                            </div>
-                            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
-                                <h4 class="font-bold text-xs uppercase text-indigo-600 mb-1">📅 Today's Homework Assigned</h4>
-                                <p class="text-sm font-medium text-slate-800">${dailyHomework}</p>
-                            </div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div onclick="switchTab('students')" class="bg-slate-50 p-4 rounded-2xl border border-slate-200 cursor-pointer hover:border-indigo-500 transition-all text-center">
-                                    <span class="block text-2xl mb-1">👥</span>
-                                    <span class="font-bold text-xs text-slate-700">Manage Students</span>
-                                </div>
-                                <div onclick="switchTab('fees')" class="bg-slate-50 p-4 rounded-2xl border border-slate-200 cursor-pointer hover:border-indigo-500 transition-all text-center">
-                                    <span class="block text-2xl mb-1">💳</span>
-                                    <span class="font-bold text-xs text-slate-700">Fee Counter</span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    break;
-                case 'students':
-                    container.innerHTML = `
-                        <div class="space-y-4">
-                            <div class="flex justify-between items-center">
-                                <h3 class="font-black text-slate-800 text-base">Student Directories</h3>
-                                <button onclick="alert('Add student feature')" class="bg-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl">+ Add Student</button>
-                            </div>
-                            <div class="space-y-3">
-                                <div class="bg-slate-50 p-4 rounded-2xl border space-y-2">
-                                    <div class="flex justify-between items-center"><span class="font-bold text-slate-800">Aarav Sharma</span><span class="text-xs bg-indigo-50 text-indigo-600 font-bold px-2.5 py-1 rounded-full">Class 8</span></div>
-                                    <p class="text-xs text-slate-500">Phone: 9876543210 | Monthly Fees: ₹1,500</p>
-                                </div>
-                                <div class="bg-slate-50 p-4 rounded-2xl border space-y-2">
-                                    <div class="flex justify-between items-center"><span class="font-bold text-slate-800">Priya Verma</span><span class="text-xs bg-indigo-50 text-indigo-600 font-bold px-2.5 py-1 rounded-full">Class 8</span></div>
-                                    <p class="text-xs text-slate-500">Phone: 9876543211 | Monthly Fees: ₹1,500</p>
-                                </div>
-                                <div class="bg-slate-50 p-4 rounded-2xl border space-y-2">
-                                    <div class="flex justify-between items-center"><span class="font-bold text-slate-800">Kabir Singh</span><span class="text-xs bg-indigo-50 text-indigo-600 font-bold px-2.5 py-1 rounded-full">Class 8</span></div>
-                                    <p class="text-xs text-slate-500">Phone: 9876543212 | Monthly Fees: ₹1,500</p>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    break;
-                case 'attendance':
-                    let attList = Object.keys(studentFees).map(name => {
-                        let status = attendanceRecords[selectedDate][name] || 'P';
-                        return `
-                            <div class="bg-slate-50 p-3 rounded-2xl border flex justify-between items-center">
-                                <span class="font-bold text-sm text-slate-800">${name}</span>
-                                <div class="flex gap-1">
-                                    <button onclick="setAttendance('${name}', 'P')" class="px-3 py-1 text-xs font-black rounded-lg transition-all ${status === 'P' ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-200 text-slate-600'}">P</button>
-                                    <button onclick="setAttendance('${name}', 'A')" class="px-3 py-1 text-xs font-black rounded-lg transition-all ${status === 'A' ? 'bg-red-600 text-white shadow-md' : 'bg-slate-200 text-slate-600'}">A</button>
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
-
-                    container.innerHTML = `
-                        <div class="space-y-4">
-                            <div class="flex justify-between items-center bg-indigo-50 p-3 rounded-2xl border border-indigo-100">
-                                <button onclick="changeDate(-1)" class="px-3 py-1 bg-white rounded-xl shadow text-xs font-bold">◀ Prev</button>
-                                <span class="font-black text-sm text-indigo-900" id="att-date-label">${selectedDate}</span>
-                                <button onclick="changeDate(1)" class="px-3 py-1 bg-white rounded-xl shadow text-xs font-bold">Next ▶</button>
-                            </div>
-                            <h3 class="font-black text-slate-800 text-base">Mark Attendance (P / A)</h3>
-                            <div class="space-y-2">${attList}</div>
-                        </div>
-                    `;
-                    break;
-                case 'fees':
-                    let feeList = Object.keys(studentFees).map(name => {
-                        let info = studentFees[name];
-                        return `
-                            <div class="bg-slate-50 p-3 rounded-2xl border flex justify-between items-center">
-                                <div>
-                                    <p class="font-bold text-sm text-slate-800">${name}</p>
-                                    <p class="text-[10px] ${info.status === 'Paid' ? 'text-emerald-600 font-bold' : 'text-red-500 font-bold'}">Status: ${info.status}</p>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="font-black text-slate-700 text-sm">₹${info.amount}</span>
-                                    <button onclick="sendFeeAlert('${name}', '${info.phone}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-xl shadow">Send Alert</button>
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
-
-                    container.innerHTML = `
-                        <div class="space-y-4">
-                            <div class="flex justify-between items-center">
-                                <h3 class="font-black text-slate-800 text-base">Fee Counter & Alerts</h3>
-                                <button onclick="sendAllReminders()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-3 py-2 rounded-xl shadow">📢 Remind All</button>
-                            </div>
-                            <div class="space-y-3">${feeList}</div>
-                        </div>
-                    `;
-                    break;
-                case 'settings':
-                    container.innerHTML = `
-                        <div class="space-y-4">
-                            <h3 class="font-black text-slate-800 text-base">System Settings & Homework</h3>
-                            <div class="bg-slate-50 p-4 rounded-2xl border space-y-4">
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Update Today's Homework</label>
-                                    <input type="text" id="homework-input" value="${dailyHomework}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-800 font-medium mb-2">
-                                    <button onclick="saveHomework()" class="bg-indigo-600 text-white text-
+            // State
+            const authMode = ref('student');
+            const currentUser = ref(null); // { role: 'student'|'admin', name:
