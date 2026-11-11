@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TuitionDesk - Complete Management App</title>
+    <title>TuitionDesk - Complete Management System</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="h-full flex flex-col justify-center items-center p-4 font-sans">
@@ -14,7 +14,7 @@
         <!-- HEADER -->
         <div class="bg-gradient-to-r from-indigo-600 to-violet-700 p-6 text-white text-center relative">
             <h1 id="app-title" class="text-2xl font-black tracking-tight">TuitionDesk</h1>
-            <p id="app-subtitle" class="text-indigo-100 text-sm mt-1 font-medium">Management System</p>
+            <p id="app-subtitle" class="text-indigo-100 text-sm mt-1 font-medium">Advanced Student & Tuition Manager</p>
         </div>
 
         <!-- VIEW 1: AUTHENTICATION -->
@@ -24,7 +24,7 @@
                 <button id="tab-auth-admin" onclick="switchAuthMode('admin')" class="flex-1 py-3 text-sm font-bold rounded-xl text-slate-600 transition-all">Admin / Staff</button>
             </div>
 
-            <!-- Student Login Form -->
+            <!-- Student Login -->
             <div id="form-student" class="space-y-4">
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Select Student Name</label>
@@ -34,10 +34,10 @@
                         <option value="Kabir Singh">Kabir Singh</option>
                     </select>
                 </div>
-                <button onclick="loginAsStudent()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-2xl shadow-lg shadow-indigo-200 transition-all">Enter Student Dashboard</button>
+                <button onclick="loginAsStudent()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-2xl shadow-lg transition-all">Enter Student Dashboard</button>
             </div>
 
-            <!-- Admin Login Form -->
+            <!-- Admin Login -->
             <div id="form-admin" class="space-y-4 hidden">
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Enter Admin PIN</label>
@@ -48,54 +48,54 @@
             </div>
         </div>
 
-        <!-- VIEW 2: DASHBOARD (Hidden Initially) -->
-        <div id="view-dashboard" class="hidden flex flex-col h-[600px]">
+        <!-- VIEW 2: DASHBOARD -->
+        <div id="view-dashboard" class="hidden flex flex-col h-[650px]">
             <!-- Dashboard Header -->
             <div class="bg-slate-50 border-b p-4 flex items-center justify-between">
                 <div>
                     <h2 id="dashboard-user-title" class="text-lg font-black text-slate-800">Dashboard</h2>
-                    <p class="text-xs text-slate-500 font-medium">Date: <span id="current-date"></span></p>
+                    <p class="text-xs text-slate-500 font-medium">Active Date: <span id="current-date-display" class="font-bold text-indigo-600"></span></p>
                 </div>
                 <button onclick="logout()" class="bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold px-4 py-2 rounded-xl transition-all">Logout</button>
             </div>
 
-            <!-- Stats Bar (Visible in Admin) -->
+            <!-- Stats Bar (Admin) -->
             <div id="admin-stats-bar" class="grid grid-cols-2 gap-3 p-4 bg-indigo-900 text-white">
                 <div class="bg-indigo-800/50 p-3 rounded-2xl border border-indigo-700/50">
-                    <p class="text-[10px] uppercase font-bold text-indigo-200">Total Students</p>
-                    <p class="text-2xl font-black mt-1">24</p>
+                    <p class="text-[10px] uppercase font-bold text-indigo-200">Today's Attendance</p>
+                    <p class="text-xl font-black mt-1" id="stat-attendance-count">2 / 3 Present</p>
                 </div>
                 <div class="bg-indigo-800/50 p-3 rounded-2xl border border-indigo-700/50">
-                    <p class="text-[10px] uppercase font-bold text-indigo-200">Fees Collected</p>
-                    <p class="text-2xl font-black mt-1">₹1,20,000</p>
+                    <p class="text-[10px] uppercase font-bold text-indigo-200">Total Fees Collected</p>
+                    <p class="text-xl font-black mt-1">₹1,500 / ₹3,000</p>
                 </div>
             </div>
 
             <!-- TAB CONTENT AREA -->
             <div id="tab-content" class="flex-1 p-6 overflow-y-auto space-y-6">
-                <!-- Dynamic content loads here -->
+                <!-- Content loaded dynamically -->
             </div>
 
-            <!-- ADMIN BOTTOM NAVIGATION BAR -->
+            <!-- NAVIGATION BAR -->
             <div id="admin-nav-bar" class="grid grid-cols-5 border-t bg-white py-2 px-1 text-center">
                 <button onclick="switchTab('overview')" id="nav-btn-overview" class="py-2 transition-all flex flex-col items-center text-indigo-600 font-black scale-105">
-                    <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                    <span class="text-lg">🏠</span>
                     <span class="text-[10px]">Home</span>
                 </button>
                 <button onclick="switchTab('students')" id="nav-btn-students" class="py-2 transition-all flex flex-col items-center text-slate-400 hover:text-slate-600">
-                    <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    <span class="text-lg">👥</span>
                     <span class="text-[10px]">Students</span>
                 </button>
                 <button onclick="switchTab('attendance')" id="nav-btn-attendance" class="py-2 transition-all flex flex-col items-center text-slate-400 hover:text-slate-600">
-                    <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                    <span class="text-lg">📅</span>
                     <span class="text-[10px]">Attendance</span>
                 </button>
                 <button onclick="switchTab('fees')" id="nav-btn-fees" class="py-2 transition-all flex flex-col items-center text-slate-400 hover:text-slate-600">
-                    <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    <span class="text-lg">💳</span>
                     <span class="text-[10px]">Fees</span>
                 </button>
                 <button onclick="switchTab('settings')" id="nav-btn-settings" class="py-2 transition-all flex flex-col items-center text-slate-400 hover:text-slate-600">
-                    <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path></svg>
+                    <span class="text-lg">⚙️</span>
                     <span class="text-[10px]">Settings</span>
                 </button>
             </div>
@@ -104,13 +104,36 @@
 
     <!-- SCRIPT -->
     <script>
-        let currentRole = 'student';
-        let loggedInStudentName = '';
+        let currentRole = 'admin';
+        let loggedInStudent = '';
+        
+        // App Data State
+        let selectedDate = new Date().toISOString().split('T')[0];
+        let attendanceRecords = {
+            [selectedDate]: { 'Aarav Sharma': 'P', 'Priya Verma': 'A', 'Kabir Singh': 'P' }
+        };
+        let studentFees = {
+            'Aarav Sharma': { status: 'Paid', amount: 1500, phone: '9876543210' },
+            'Priya Verma': { status: 'Pending', amount: 1500, phone: '9876543211' },
+            'Kabir Singh': { status: 'Paid', amount: 1500, phone: '9876543212' }
+        };
+        let dailyHomework = "Complete Math Exercise 5.2 & Read Science Chapter 4.";
 
-        document.getElementById('current-date').innerText = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        updateDateDisplay();
+
+        function updateDateDisplay() {
+            document.getElementById('current-date-display').innerText = selectedDate;
+        }
+
+        function changeDate(days) {
+            let d = new Date(selectedDate);
+            d.setDate(d.getDate() + days);
+            selectedDate = d.toISOString().split('T')[0];
+            updateDateDisplay();
+            switchTab('attendance');
+        }
 
         function switchAuthMode(mode) {
-            currentRole = mode;
             const stuTab = document.getElementById('tab-auth-student');
             const adminTab = document.getElementById('tab-auth-admin');
             const stuForm = document.getElementById('form-student');
@@ -141,7 +164,7 @@
         }
 
         function loginAsStudent() {
-            loggedInStudentName = document.getElementById('student-selector').value;
+            loggedInStudent = document.getElementById('student-selector').value;
             initDashboard('student');
         }
 
@@ -159,38 +182,46 @@
                 navBar.classList.remove('hidden');
                 switchTab('overview');
             } else {
-                document.getElementById('dashboard-user-title').innerText = "Portal: " + loggedInStudentName;
+                document.getElementById('dashboard-user-title').innerText = "Student: " + loggedInStudent;
                 statsBar.classList.add('hidden');
                 navBar.classList.add('hidden');
-                renderStudentView();
+                renderStudentPortal();
             }
         }
 
         function switchTab(tabId) {
             ['overview', 'students', 'attendance', 'fees', 'settings'].forEach(id => {
                 const btn = document.getElementById(`nav-btn-${id}`);
-                btn.className = "py-2 transition-all flex flex-col items-center " + (id === tabId ? "text-indigo-600 font-black scale-105" : "text-slate-400 hover:text-slate-600");
+                if(btn) btn.className = "py-2 transition-all flex flex-col items-center " + (id === tabId ? "text-indigo-600 font-black scale-105" : "text-slate-400 hover:text-slate-600");
             });
 
             const container = document.getElementById('tab-content');
-            container.innerHTML = ''; // Clear previous
+            container.innerHTML = '';
+
+            if(!attendanceRecords[selectedDate]) {
+                attendanceRecords[selectedDate] = { 'Aarav Sharma': 'P', 'Priya Verma': 'P', 'Kabir Singh': 'P' };
+            }
 
             switch(tabId) {
                 case 'overview':
                     container.innerHTML = `
-                        <div class="space-y-4 animate-fadeIn">
+                        <div class="space-y-4">
                             <div class="bg-gradient-to-br from-indigo-500 to-violet-600 p-6 rounded-3xl text-white shadow-lg">
-                                <h3 class="text-xl font-black">Welcome back, Admin</h3>
-                                <p class="text-xs text-indigo-100 mt-1">Here is your daily summary</p>
+                                <h3 class="text-xl font-black">Welcome Back, Admin</h3>
+                                <p class="text-xs text-indigo-100 mt-1">Today's Homework & Quick Overview</p>
+                            </div>
+                            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                                <h4 class="font-bold text-xs uppercase text-indigo-600 mb-1">📅 Today's Homework Assigned</h4>
+                                <p class="text-sm font-medium text-slate-800">${dailyHomework}</p>
                             </div>
                             <div class="grid grid-cols-2 gap-3">
                                 <div onclick="switchTab('students')" class="bg-slate-50 p-4 rounded-2xl border border-slate-200 cursor-pointer hover:border-indigo-500 transition-all text-center">
                                     <span class="block text-2xl mb-1">👥</span>
                                     <span class="font-bold text-xs text-slate-700">Manage Students</span>
                                 </div>
-                                <div onclick="switchTab('attendance')" class="bg-slate-50 p-4 rounded-2xl border border-slate-200 cursor-pointer hover:border-indigo-500 transition-all text-center">
-                                    <span class="block text-2xl mb-1">📝</span>
-                                    <span class="font-bold text-xs text-slate-700">Mark Attendance</span>
+                                <div onclick="switchTab('fees')" class="bg-slate-50 p-4 rounded-2xl border border-slate-200 cursor-pointer hover:border-indigo-500 transition-all text-center">
+                                    <span class="block text-2xl mb-1">💳</span>
+                                    <span class="font-bold text-xs text-slate-700">Fee Counter</span>
                                 </div>
                             </div>
                         </div>
@@ -198,81 +229,87 @@
                     break;
                 case 'students':
                     container.innerHTML = `
-                        <div class="space-y-4 animate-fadeIn">
+                        <div class="space-y-4">
                             <div class="flex justify-between items-center">
-                                <h3 class="font-black text-slate-800 text-base">Registered Students</h3>
-                                <button onclick="alert('Add student modal opened')" class="bg-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl">+ Add Student</button>
+                                <h3 class="font-black text-slate-800 text-base">Student Directories</h3>
+                                <button onclick="alert('Add student feature')" class="bg-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl">+ Add Student</button>
                             </div>
-                            <div class="space-y-2">
-                                <div class="bg-slate-50 p-3 rounded-2xl border flex justify-between items-center"><span class="font-bold text-sm">Aarav Sharma</span><span class="text-xs text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full font-bold">Class 10</span></div>
-                                <div class="bg-slate-50 p-3 rounded-2xl border flex justify-between items-center"><span class="font-bold text-sm">Priya Verma</span><span class="text-xs text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full font-bold">Class 12</span></div>
-                                <div class="bg-slate-50 p-3 rounded-2xl border flex justify-between items-center"><span class="font-bold text-sm">Kabir Singh</span><span class="text-xs text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full font-bold">Class 9</span></div>
+                            <div class="space-y-3">
+                                <div class="bg-slate-50 p-4 rounded-2xl border space-y-2">
+                                    <div class="flex justify-between items-center"><span class="font-bold text-slate-800">Aarav Sharma</span><span class="text-xs bg-indigo-50 text-indigo-600 font-bold px-2.5 py-1 rounded-full">Class 8</span></div>
+                                    <p class="text-xs text-slate-500">Phone: 9876543210 | Monthly Fees: ₹1,500</p>
+                                </div>
+                                <div class="bg-slate-50 p-4 rounded-2xl border space-y-2">
+                                    <div class="flex justify-between items-center"><span class="font-bold text-slate-800">Priya Verma</span><span class="text-xs bg-indigo-50 text-indigo-600 font-bold px-2.5 py-1 rounded-full">Class 8</span></div>
+                                    <p class="text-xs text-slate-500">Phone: 9876543211 | Monthly Fees: ₹1,500</p>
+                                </div>
+                                <div class="bg-slate-50 p-4 rounded-2xl border space-y-2">
+                                    <div class="flex justify-between items-center"><span class="font-bold text-slate-800">Kabir Singh</span><span class="text-xs bg-indigo-50 text-indigo-600 font-bold px-2.5 py-1 rounded-full">Class 8</span></div>
+                                    <p class="text-xs text-slate-500">Phone: 9876543212 | Monthly Fees: ₹1,500</p>
+                                </div>
                             </div>
                         </div>
                     `;
                     break;
                 case 'attendance':
-                    container.innerHTML = `
-                        <div class="space-y-4 animate-fadeIn">
-                            <h3 class="font-black text-slate-800 text-base">Daily Attendance Sheet</h3>
-                            <div class="space-y-3">
-                                <div class="bg-slate-50 p-3 rounded-2xl border flex justify-between items-center"><span class="font-bold text-sm">Aarav Sharma</span><span class="text-xs bg-emerald-100 text-emerald-700 px-3 py-1 rounded-lg font-bold">Present</span></div>
-                                <div class="bg-slate-50 p-3 rounded-2xl border flex justify-between items-center"><span class="font-bold text-sm">Priya Verma</span><span class="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg font-bold">Absent</span></div>
-                                <div class="bg-slate-50 p-3 rounded-2xl border flex justify-between items-center"><span class="font-bold text-sm">Kabir Singh</span><span class="text-xs bg-emerald-100 text-emerald-700 px-3 py-1 rounded-lg font-bold">Present</span></div>
+                    let attList = Object.keys(studentFees).map(name => {
+                        let status = attendanceRecords[selectedDate][name] || 'P';
+                        return `
+                            <div class="bg-slate-50 p-3 rounded-2xl border flex justify-between items-center">
+                                <span class="font-bold text-sm text-slate-800">${name}</span>
+                                <div class="flex gap-1">
+                                    <button onclick="setAttendance('${name}', 'P')" class="px-3 py-1 text-xs font-black rounded-lg transition-all ${status === 'P' ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-200 text-slate-600'}">P</button>
+                                    <button onclick="setAttendance('${name}', 'A')" class="px-3 py-1 text-xs font-black rounded-lg transition-all ${status === 'A' ? 'bg-red-600 text-white shadow-md' : 'bg-slate-200 text-slate-600'}">A</button>
+                                </div>
                             </div>
+                        `;
+                    }).join('');
+
+                    container.innerHTML = `
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center bg-indigo-50 p-3 rounded-2xl border border-indigo-100">
+                                <button onclick="changeDate(-1)" class="px-3 py-1 bg-white rounded-xl shadow text-xs font-bold">◀ Prev</button>
+                                <span class="font-black text-sm text-indigo-900" id="att-date-label">${selectedDate}</span>
+                                <button onclick="changeDate(1)" class="px-3 py-1 bg-white rounded-xl shadow text-xs font-bold">Next ▶</button>
+                            </div>
+                            <h3 class="font-black text-slate-800 text-base">Mark Attendance (P / A)</h3>
+                            <div class="space-y-2">${attList}</div>
                         </div>
                     `;
                     break;
                 case 'fees':
-                    container.innerHTML = `
-                        <div class="space-y-4 animate-fadeIn">
-                            <h3 class="font-black text-slate-800 text-base">Fee Management</h3>
-                            <div class="space-y-3">
-                                <div class="bg-slate-50 p-3 rounded-2xl border flex justify-between items-center"><div><p class="font-bold text-sm">Aarav Sharma</p><p class="text-[10px] text-slate-400">Paid</p></div><span class="font-black text-emerald-600 text-sm">₹1,500</span></div>
-                                <div class="bg-slate-50 p-3 rounded-2xl border flex justify-between items-center"><div><p class="font-bold text-sm">Priya Verma</p><p class="text-[10px] text-red-500 font-bold">Pending</p></div><span class="font-black text-red-600 text-sm">₹1,500</span></div>
+                    let feeList = Object.keys(studentFees).map(name => {
+                        let info = studentFees[name];
+                        return `
+                            <div class="bg-slate-50 p-3 rounded-2xl border flex justify-between items-center">
+                                <div>
+                                    <p class="font-bold text-sm text-slate-800">${name}</p>
+                                    <p class="text-[10px] ${info.status === 'Paid' ? 'text-emerald-600 font-bold' : 'text-red-500 font-bold'}">Status: ${info.status}</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-black text-slate-700 text-sm">₹${info.amount}</span>
+                                    <button onclick="sendFeeAlert('${name}', '${info.phone}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-xl shadow">Send Alert</button>
+                                </div>
                             </div>
+                        `;
+                    }).join('');
+
+                    container.innerHTML = `
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-black text-slate-800 text-base">Fee Counter & Alerts</h3>
+                                <button onclick="sendAllReminders()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-3 py-2 rounded-xl shadow">📢 Remind All</button>
+                            </div>
+                            <div class="space-y-3">${feeList}</div>
                         </div>
                     `;
                     break;
                 case 'settings':
                     container.innerHTML = `
-                        <div class="space-y-4 animate-fadeIn">
-                            <h3 class="font-black text-slate-800 text-base">System Settings</h3>
+                        <div class="space-y-4">
+                            <h3 class="font-black text-slate-800 text-base">System Settings & Homework</h3>
                             <div class="bg-slate-50 p-4 rounded-2xl border space-y-4">
-                                <div class="flex justify-between items-center"><span class="text-sm font-bold text-slate-700">App Name</span><button onclick="alert('Edit name')" class="text-xs text-indigo-600 font-bold">Edit</button></div>
-                                <hr class="border-slate-200">
-                                <div class="flex justify-between items-center"><span class="text-sm font-bold text-slate-700">Admin PIN</span><button onclick="alert('Change PIN')" class="text-xs text-indigo-600 font-bold">Change</button></div>
-                            </div>
-                        </div>
-                    `;
-                    break;
-            }
-        }
-
-        function renderStudentView() {
-            const container = document.getElementById('tab-content');
-            container.innerHTML = `
-                <div class="space-y-4 animate-fadeIn">
-                    <div class="bg-gradient-to-r from-blue-500 to-indigo-600 p-6 rounded-3xl text-white shadow-lg">
-                        <h3 class="text-lg font-bold">Student Progress Portal</h3>
-                        <p class="text-xs text-blue-100 mt-1">Academic overview & updates</p>
-                    </div>
-                    <div class="bg-slate-50 p-4 rounded-2xl border">
-                        <h4 class="font-bold text-xs uppercase text-slate-400 mb-3">Performance Records</h4>
-                        <div class="space-y-2">
-                            <div class="flex justify-between p-2 bg-white rounded-xl border"><span class="font-medium text-sm">Mathematics Test</span><span class="font-bold text-emerald-600">A+</span></div>
-                            <div class="flex justify-between p-2 bg-white rounded-xl border"><span class="font-medium text-sm">Physics Quiz</span><span class="font-bold text-emerald-600">A</span></div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function logout() {
-            document.getElementById('view-dashboard').classList.add('hidden');
-            document.getElementById('view-auth').classList.remove('hidden');
-            document.getElementById('admin-pin-input').value = '';
-        }
-    </script>
-</body>
-</html>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Update Today's Homework</label>
+                                    <input type="text" id="homework-input" value="${dailyHomework}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-800 font-medium mb-2">
+                                    <button onclick="saveHomework()" class="bg-indigo-600 text-white text-
