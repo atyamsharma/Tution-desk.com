@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="page-title">TuitionDesk</title>
-    <!-- Tailwind CSS -->
+    <title>TuitionDesk</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Vue.js 3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 </head>
 <body class="bg-slate-100 font-sans text-slate-800 antialiased min-h-screen flex flex-col items-center justify-center p-0 sm:p-4">
@@ -27,7 +25,7 @@
         </div>
     </header>
 
-    <!-- ================= AUTHENTICATION / LOGIN SCREEN ================= -->
+    <!-- AUTHENTICATION SCREEN -->
     <main v-if="!currentUser" class="flex-1 p-6 flex flex-col justify-center space-y-6 bg-slate-50">
         <div class="text-center space-y-2">
             <h2 class="text-2xl font-black text-slate-900">Welcome to TuitionDesk</h2>
@@ -62,10 +60,10 @@
         </div>
     </main>
 
-    <!-- ================= DASHBOARD SCREEN ================= -->
+    <!-- DASHBOARD SCREEN -->
     <main v-else class="flex-1 overflow-y-auto p-4 space-y-4 pb-24 bg-white">
         
-        <!-- STUDENT VIEW PORTAL -->
+        <!-- STUDENT VIEW -->
         <div v-if="currentUser.role === 'student'" class="space-y-4">
             <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-5 rounded-3xl shadow-lg space-y-1">
                 <p class="text-xs text-blue-200 font-medium">Student Portal</p>
@@ -84,13 +82,11 @@
                 </div>
             </div>
 
-            <!-- Homework box -->
             <div class="bg-slate-50 border-2 border-slate-100 p-4 rounded-2xl space-y-2">
                 <p class="text-xs font-black uppercase text-indigo-600 flex items-center gap-1">📌 Today's Assigned Homework</p>
                 <p class="text-sm font-medium text-slate-700">{{ appSettings.homework || 'No homework assigned for today yet.' }}</p>
             </div>
 
-            <!-- Performance Meters -->
             <div class="bg-slate-50 border-2 border-slate-100 p-4 rounded-2xl space-y-3">
                 <p class="text-xs font-black uppercase text-slate-500">📊 Monthly Performance Report</p>
                 <div class="space-y-2">
@@ -109,17 +105,14 @@
                 </div>
             </div>
 
-            <!-- UPI Payment Button -->
             <button @click="payFeeUPI" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-2xl font-black shadow-lg shadow-emerald-100 flex justify-center items-center gap-2 transition">
                 💳 Pay Tuition Fee via UPI (GPay / Paytm)
             </button>
         </div>
 
-
-        <!-- ADMIN / STAFF VIEW PORTAL -->
+        <!-- ADMIN VIEW -->
         <div v-if="currentUser.role === 'admin'" class="space-y-4">
             
-            <!-- ADMIN TABS NAVIGATION -->
             <div class="grid grid-cols-4 gap-1 bg-slate-100 p-1 rounded-2xl text-xs font-bold">
                 <button @click="adminTab = 'overview'" :class="adminTab === 'overview' ? 'bg-white text-indigo-600 shadow' : 'text-slate-600'" class="py-2.5 rounded-xl transition">Overview</button>
                 <button @click="adminTab = 'students'" :class="adminTab === 'students' ? 'bg-white text-indigo-600 shadow' : 'text-slate-600'" class="py-2.5 rounded-xl transition">Students</button>
@@ -127,7 +120,7 @@
                 <button @click="adminTab = 'settings'" :class="adminTab === 'settings' ? 'bg-white text-indigo-600 shadow' : 'text-slate-600'" class="py-2.5 rounded-xl transition">Settings</button>
             </div>
 
-            <!-- TAB 1: OVERVIEW & FEES -->
+            <!-- TAB 1: OVERVIEW -->
             <div v-if="adminTab === 'overview'" class="space-y-4">
                 <div class="grid grid-cols-2 gap-3">
                     <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-2xl">
@@ -140,7 +133,6 @@
                     </div>
                 </div>
 
-                <!-- Fees Alert Management -->
                 <div class="space-y-3">
                     <div class="flex justify-between items-center">
                         <h3 class="font-black text-slate-800 text-sm">Fee Status & WhatsApp Alerts</h3>
@@ -162,7 +154,7 @@
                 </div>
             </div>
 
-            <!-- TAB 2: STUDENTS DIRECTORY & PERFORMANCE BARS -->
+            <!-- TAB 2: STUDENTS DIRECTORY -->
             <div v-if="adminTab === 'students'" class="space-y-4">
                 <div class="flex justify-between items-center">
                     <h3 class="font-black text-slate-800 text-sm">Student Records & Performance</h3>
@@ -179,7 +171,6 @@
                             <button @click="deleteStudent(s.id)" class="text-red-500 hover:text-red-700 text-xs font-bold">Delete</button>
                         </div>
 
-                        <!-- Performance Mini-Bars -->
                         <div class="grid grid-cols-3 gap-2 pt-2 border-t text-center">
                             <div class="bg-white p-2 rounded-xl border">
                                 <span class="text-[10px] text-slate-400 font-bold block">Study</span>
@@ -198,7 +189,7 @@
                 </div>
             </div>
 
-            <!-- TAB 3: DAILY ATTENDANCE (P / A with Date Picker) -->
+            <!-- TAB 3: ATTENDANCE -->
             <div v-if="adminTab === 'attendance'" class="space-y-4">
                 <div class="flex justify-between items-center bg-indigo-50 p-3 rounded-2xl border border-indigo-100">
                     <button @click="changeDate(-1)" class="px-3 py-1 bg-white rounded-xl shadow text-xs font-bold">◀ Prev Date</button>
@@ -210,14 +201,14 @@
                     <div v-for="s in students" :key="s.id" class="bg-slate-50 border p-3 rounded-2xl flex justify-between items-center">
                         <span class="font-bold text-sm text-slate-800">{{ s.name }}</span>
                         <div class="flex gap-1.5">
-                            <button @click="markAttendance(s.name, 'P')" :class="getAttendanceStatus(s.name) === 'P' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-200 text-slate-600'" class="px-4 py-1.5 text-xs font-black rounded-xl transition">P (Present)</button>
-                            <button @click="markAttendance(s.name, 'A')" :class="getAttendanceStatus(s.name) === 'A' ? 'bg-red-600 text-white shadow' : 'bg-slate-200 text-slate-600'" class="px-4 py-1.5 text-xs font-black rounded-xl transition">A (Absent)</button>
+                            <button @click="markAttendance(s.name, 'P')" :class="getAttendanceStatus(s.name) === 'P' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-200 text-slate-600'" class="px-4 py-1.5 text-xs font-black rounded-xl transition">P</button>
+                            <button @click="markAttendance(s.name, 'A')" :class="getAttendanceStatus(s.name) === 'A' ? 'bg-red-600 text-white shadow' : 'bg-slate-200 text-slate-600'" class="px-4 py-1.5 text-xs font-black rounded-xl transition">A</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- TAB 4: SETTINGS & HOMEWORK -->
+            <!-- TAB 4: SETTINGS -->
             <div v-if="adminTab === 'settings'" class="space-y-4">
                 <div class="bg-slate-50 border p-4 rounded-2xl space-y-4">
                     <h3 class="font-black text-slate-800 text-sm">📝 Daily Homework Broadcast</h3>
@@ -268,16 +259,31 @@
 
 </div>
 
-<!-- VUE SCRIPT LOGIC -->
 <script>
-    const { createApp, ref, reactive, computed, onMounted } = Vue;
+    const { createApp, ref, reactive, computed, nextTick } = Vue;
 
     createApp({
         setup() {
-            // Persistent storage helpers
-            const loadStorage = (key, defaultVal) => JSON.parse(localStorage.getItem(key)) || defaultVal;
+            const loadStorage = (key, defaultVal) => {
+                const item = localStorage.getItem(key);
+                return item ? JSON.parse(item) : defaultVal;
+            };
             const saveStorage = (key, val) => localStorage.setItem(key, JSON.stringify(val));
 
-            // State
             const authMode = ref('student');
-            const currentUser = ref(null); // { role: 'student'|'admin', name:
+            const currentUser = ref(null);
+            const selectedStudentName = ref('');
+            const adminPinInput = ref('');
+            const pinError = ref(false);
+
+            const adminTab = ref('overview');
+            const showAddModal = ref(false);
+
+            const appSettings = reactive(loadStorage('tuition_settings', {
+                appName: 'TuitionDesk',
+                adminPin: '12345',
+                upiId: 'tuitiondesk@upi',
+                homework: 'Complete Math Exercise 5.2 & read Chapter 4 Science.'
+            }));
+
+            const students = ref(loadSto
